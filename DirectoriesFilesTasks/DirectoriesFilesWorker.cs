@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.StaticFiles;
+using Projects.Common.BuiltInTypesTasks.DateTimeTasks;
 using Projects.Common.Models;
 using Projects.Common.Validations;
 using Projects.Common.Validations.Exceptions.Global;
@@ -10,7 +11,7 @@ namespace Projects.Common.Directories;
 
 public class DirectoriesFilesWorker
 {
-    public static async Task<List<string>> CopyFilesNewNameForExistingFile(string fullpath, IFormFileCollection files)
+    public static async Task<List<string>> CopyFilesNewNameForExistingFile(string fullpath, IFormFileCollection files, bool overrideFile = false)
     {
         var saved = new List<string>();
 
@@ -18,7 +19,13 @@ public class DirectoriesFilesWorker
         {
             var filePath = PathCombine(fullpath, file.FileName);
 
-            filePath = NewNameForExistingFile(filePath);
+            // filePath = NewNameForExistingFile(filePath);
+
+
+            if (!overrideFile)
+                filePath = NewNameForExistingFile($@"{fullpath}\{file.FileName}");
+            else
+                filePath = $@"{fullpath}\{file.FileName}";
 
             using var stream = new FileStream(filePath, FileMode.Create);
             await file.CopyToAsync(stream);
@@ -28,9 +35,14 @@ public class DirectoriesFilesWorker
 
         return saved;
     }
-    public static async Task<string> CopySingleFileNewNameForExistingFile(string fullpath, FormFile file)
+    public static async Task<string> CopySingleFileNewNameForExistingFile(string fullpath, FormFile file, bool overrideFile = false)
     {
-        string filePath = NewNameForExistingFile($@"{fullpath}\{file.FileName}");
+        string filePath;
+
+        if (!overrideFile)
+            filePath = NewNameForExistingFile($@"{fullpath}\{file.FileName}");
+        else
+            filePath = $@"{fullpath}\{file.FileName}";
 
         using var stream = new FileStream(filePath, FileMode.Create);
         await file.CopyToAsync(stream);
@@ -65,7 +77,7 @@ public class DirectoriesFilesWorker
         if (File.Exists(oldName))
         {
             string directory = Path.GetDirectoryName(oldName) ?? string.Empty;
-            string timeToName = DateTimeTasksManagement.BasedDateTimeFileName();
+            string timeToName = DateTimeTasks.BasedDateTimeFileName();
             // string timeToName = $@"{DateTimeTasksManagement.BasedDateTimeFileName_DD_MM_YYYY()}.{DateTimeTasksManagement.BasedDateTimeFileName()}";
             string extension = Path.GetExtension(oldName);
             string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(oldName);

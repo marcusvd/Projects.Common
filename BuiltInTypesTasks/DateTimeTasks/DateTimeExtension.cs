@@ -1,9 +1,9 @@
 ﻿
 using System.Globalization;
 
-namespace Projects.Common.Directories;
+namespace Projects.Common.BuiltInTypesTasks.DateTimeTasks;
 
-public class DateTimeTasksManagement
+public class DateTimeTasks
 {
     public static string BasedDateTimeFileName() => DateTime.UtcNow.ToFileTime().ToString();
     public static string BasedDateTimeFileName_DD_MM_YYYY() => string.Format("{0:dd_MM_yyyy}", DateTime.UtcNow);
@@ -41,5 +41,26 @@ public static class DateTimeExtension
 
         return Char.ToUpper(monthName[0]) + monthName.Substring(1);
     }
+    public static DateTime? TryParseDateTimeMinValue(this string text) =>
+          DateTime.TryParse(text, out var dt) ? dt : DateTime.MinValue;
+    public static DateTime? TryParseDateTimeNull(this string text) =>
+        DateTime.TryParse(text, out var dt) ? dt : null;
+    public static List<DateTime> TryParseMultipleDates(this string input) =>
+        ListConvertedDates(HandleStringDate(input));
+    private static string[] HandleStringDate(string date) =>
+        date.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? [];
+    private static List<DateTime> ListConvertedDates(string[] stringDates)
+    {
+        var listDates = new List<DateTime>();
 
+        if (stringDates is []) return listDates;
+
+        foreach (var date in stringDates)
+        {
+            DateTime.TryParse(date.Trim(), out var dt);
+            listDates.Add(dt);
+        }
+
+        return listDates;
+    }
 }
